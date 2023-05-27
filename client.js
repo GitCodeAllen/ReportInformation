@@ -1,7 +1,32 @@
 const axios = require('axios');
 const os = require('os');
+const dns = require('dns');
+const util = require('util');
+const lookup = util.promisify(dns.lookup);
+const { client } = require('./config.json');
+
+let serverIp = '';
+
+async function main() {
+    await getIpFromDomain();
+    setInterval(sendDataToServer, client.report_interval);
+    setInterval(getIpFromDomain, client.server_refresh_interval);
+}
+
+async function getIpFromDomain() {
+    try {
+        const { address } = await lookup(client.server_host);
+        console.log(`IP address: ${address}`);
+        serverIp = address;
+    } catch (err) {
+        console.error(err);
+    }
+}
 
 const sendDataToServer = async () => {
+    if (serverIp.length === 0) {
+        return;
+    }
     const networkInterfaces = os.networkInterfaces();
     const data = {
         hostname: os.hostname(),
@@ -22,7 +47,7 @@ const sendDataToServer = async () => {
         }
     }
 
-    await axios.post('http://localhost:3000/report', data);
+    await axios.post(`http://${serverIp}:${client.server_port}/report`, data);
 };
 
-setInterval(sendDataToServer, 6000); // send data every minute
+main();

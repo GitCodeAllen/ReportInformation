@@ -1,0 +1,11 @@
+{
+    "server": {
+        "bind_port": 3000
+    },
+    "client": {
+        "server_port": 3000,
+        "server_host": "localhost",
+        "server_refresh_interval": 3600000,
+        "report_interval": 60000
+    }
+}
