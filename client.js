@@ -13,13 +13,18 @@ async function main() {
     setInterval(getIpFromDomain, client.server_refresh_interval);
 }
 
+function logWithTimestamp(message) {
+    const timestamp = new Date().toLocaleString();
+    console.log(`[${timestamp}] ${message}`);
+}
+
 async function getIpFromDomain() {
     try {
         const { address } = await lookup(client.server_host);
-        console.log(`IP address: ${address}`);
+        logWithTimestamp(`IP address: ${address}`);
         serverIp = address;
     } catch (err) {
-        console.error(err);
+        logWithTimestamp(err);
     }
 }
 
@@ -47,7 +52,15 @@ const sendDataToServer = async () => {
         }
     }
 
-    await axios.post(`http://${serverIp}:${client.server_port}/report`, data);
+    try{
+        await axios.post(`http://${serverIp}:${client.server_port}/report`, data);
+    }catch(e){
+        if (e.isAxiosError && e.code) {
+            logWithTimestamp(`网络错误：${e.code}`);
+        } else {
+            logWithTimestamp(e.message);
+        }
+    }
 };
 
 main();
