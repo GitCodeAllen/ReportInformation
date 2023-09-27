@@ -2,6 +2,7 @@ const axios = require('axios');
 const os = require('os');
 const dns = require('dns');
 const util = require('util');
+const net = require('net');
 const lookup = util.promisify(dns.lookup);
 const { client } = require('./config.json');
 
@@ -20,6 +21,11 @@ function logWithTimestamp(message) {
 
 async function getIpFromDomain() {
     try {
+        // 如果是IP地址，直接返回
+        if(net.isIPv4(client.server_host) || net.isIPv6(client.server_host)) {
+            serverIp = client.server_host;
+            return;
+        }
         const { address } = await lookup(client.server_host);
         logWithTimestamp(`IP address: ${address}`);
         serverIp = address;
